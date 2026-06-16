@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Culto — Control Financiero</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+  #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#000}
+  .login-box{text-align:center;padding:2.5rem}
+  .login-logo{font-size:36px;font-weight:700;color:#fff;letter-spacing:0.02em;margin-bottom:6px}
+  .login-logo span{color:#c0392b}
+  .login-sub{font-size:13px;color:#666;margin-bottom:2.5rem;letter-spacing:0.05em;text-transform:uppercase}
+  .btn-google{display:inline-flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;border:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:opacity .2s}
+  .btn-google:hover{opacity:.9}
+  .btn-google svg{width:20px;height:20px}
+  #app{display:none;max-width:960px;margin:0 auto;padding:1.5rem}
+  .header{background:#000;color:#fff;padding:1.25rem 1.5rem;border-radius:12px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+  .logo{font-size:20px;font-weight:700;letter-spacing:.02em}
+  .logo span{color:#c0392b}
+  .header-right{display:flex;align-items:center;gap:16px}
+  .balance-box{text-align:right}
+  .balance-num{font-size:20px;font-weight:600}
+  .balance-label{font-size:11px;color:#888}
+  .user-info{font-size:12px;color:#888;display:flex;align-items:center;gap:8px}
+  .avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+  .btn-logout{background:none;border:0.5px solid #444;color:#888;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+  .btn-logout:hover{color:#fff;border-color:#666}
+  .tab-bar{display:flex;gap:2px;margin-bottom:1rem;border-bottom:1px solid #e5e5e0;padding-bottom:0;flex-wrap:wrap}
+  .tab-btn{background:none;border:none;padding:9px 16px;font-size:14px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab-btn.active{color:#c0392b;border-bottom-color:#c0392b;font-weight:500}
+  .tab-btn:hover:not(.active){color:#444}
+  .tab-content{display:none}.tab-content.active{display:block}
+  .metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem}
+  .metric-card{background:#fff;border-radius:10px;padding:.875rem 1rem;border:0.5px solid #e5e5e0}
+  .metric-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .metric-value{font-size:20px;font-weight:600}
+  .positive{color:#16a34a}.negative{color:#c0392b}
+  .section-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;margin-top:1.25rem}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+  .form-group{display:flex;flex-direction:column;gap:4px}
+  .form-group label{font-size:12px;color:#666;font-weight:500}
+  .form-group input,.form-group select,.form-group textarea{font-size:14px;border:1px solid #e5e5e0;border-radius:8px;padding:9px 11px;background:#fff;color:#1a1a1a;outline:none;transition:border-color .15s}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#c0392b}
+  .form-group textarea{resize:vertical;min-height:64px}
+  .btn-primary{background:#c0392b;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%;letter-spacing:.01em}
+  .btn-primary:hover{background:#a93226}
+  .btn-primary:disabled{background:#ccc;cursor:not-allowed}
+  .btn-small{background:none;border:1px solid #e5e5e0;color:#888;padding:4px 9px;border-radius:6px;font-size:12px;cursor:pointer}
+  .btn-small:hover{color:#c0392b;border-color:#c0392b}
+  .table-wrap{overflow-x:auto;border:1px solid #e5e5e0;border-radius:10px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;text-align:left;border-bottom:1px solid #e5e5e0;background:#fafaf8}
+  td{padding:9px 12px;border-bottom:1px solid #f0f0ec;color:#1a1a1a;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600}
+  .badge-income{background:#dcfce7;color:#166534}
+  .badge-expense{background:#fee2e2;color:#991b1b}
+  .badge-investment{background:#e0e7ff;color:#3730a3}
+  .amount-pos{color:#16a34a;font-weight:600}
+  .amount-neg{color:#c0392b;font-weight:600}
+  .empty-state{text-align:center;padding:2.5rem;color:#aaa;font-size:13px}
+  .cat-tag{font-size:11px;background:#f5f5f0;border:1px solid #e5e5e0;padding:2px 8px;border-radius:10px;color:#666}
+  .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:10px}
+  .alert-success{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+  .alert-error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+  .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+  .filter-row select,.filter-row input{font-size:13px;padding:7px 10px;border:1px solid #e5e5e0;border-radius:8px;background:#fff;color:#1a1a1a;outline:none}
+  .inv-card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:10px}
+  .inv-title{font-size:15px;font-weight:600;margin-bottom:4px}
+  .inv-meta{display:flex;gap:16px;font-size:12px;color:#888;flex-wrap:wrap}
+  .inv-amount{font-size:18px;font-weight:600;color:#c0392b;margin-top:8px}
+  .chart-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .chart-bar-label{font-size:12px;color:#666;width:110px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chart-bar-outer{flex:1;background:#f0f0ec;border-radius:4px;height:16px;overflow:hidden}
+  .chart-bar-inner{height:100%;border-radius:4px;transition:width .5s ease}
+  .chart-bar-val{font-size:12px;color:#888;width:80px;flex-shrink:0}
+  .spinner{display:inline-block;width:18px;height:18px;border:2px solid #e5e5e0;border-top-color:#c0392b;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-overlay{text-align:center;padding:3rem;color:#888;font-size:14px}
+  @media(max-width:600px){
+    .form-row,.form-row-3{grid-template-columns:1fr}
+    .metrics-grid{grid-template-columns:1fr 1fr}
+    #app{padding:1rem}
+    .header{flex-direction:column;gap:12px;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">SOMOS<span>CULTO</span>.</div>
+    <div class="login-sub">Running Culture · Costa Rica</div>
+    <div style="font-size:13px;color:#555;margin-bottom:2rem">Control financiero interno</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.5 30.2 0 24 0 14.8 0 6.9 5.4 3 13.3l7.9 6.1C12.9 13.1 18 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.5 2.8-2.2 5.2-4.7 6.8l7.3 5.7c4.3-4 6.8-9.9 6.8-16.5z"/><path fill="#FBBC05" d="M10.9 28.6A14.8 14.8 0 019.5 24c0-1.6.3-3.2.8-4.6L2.4 13.3A23.9 23.9 0 000 24c0 3.9.9 7.5 2.6 10.7l8.3-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.3-5.7c-2 1.4-4.6 2.2-7.9 2.2-6 0-11.1-4-12.9-9.4l-8 6.2C6.8 42.6 14.8 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Ingresar con Google
+    </button>
+    <div id="login-error" style="color:#c0392b;font-size:13px;margin-top:16px;display:none"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="logo">SOMOS<span>CULTO</span>.</div>
+      <div style="font-size:11px;color:#666;margin-top:2px;letter-spacing:.04em">CONTROL FINANCIERO</div>
+    </div>
+    <div class="header-right">
+      <div class="balance-box">
+        <div class="balance-num" id="header-balance">$0.00</div>
+        <div class="balance-label">balance neto (USD)</div>
+      </div>
+      <div class="user-info">
+        <img id="user-avatar" class="avatar" src="" alt="avatar">
+        <div>
+          <div id="user-name" style="color:#1a1a1a;font-size:12px;font-weight:500"></div>
+          <button class="btn-logout" onclick="logout()">Salir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+    <button class="tab-btn" onclick="showTab('registro',this)">➕ Nuevo registro</button>
+    <button class="tab-btn" onclick="showTab('historial',this)">📋 Historial</button>
+    <button class="tab-btn" onclick="showTab('inversiones',this)">📈 Inversiones</button>
+    <button class="tab-btn" onclick="showTab('merch',this)">👕 Merch</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="metrics-grid" id="metrics-grid"><div class="loading-overlay"><span class="spinner"></span>Cargando datos...</div></div>
+    <div class="section-title">Ingresos por categoría</div>
+    <div id="chart-income"><div class="empty-state">Sin datos</div></div>
+    <div class="section-title">Gastos por categoría</div>
+    <div id="chart-expense"><div class="empty-state">Sin datos</div></div>
+    <div class="section-title">Últimos movimientos</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Fecha</th><th>Descripción</th><th>Tipo</th><th>Categoría</th><th>Monto</th></tr></thead>
+      <tbody id="recent-tbody"><tr><td colspan="5" class="empty-state">Sin movimientos</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- REGISTRO -->
+  <div id="tab-registro" class="tab-content">
+    <div id="form-alert" style="display:none"></div>
+    <div class="section-title">Tipo de movimiento</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo *</label>
+        <select id="f-type" onchange="updateCategories()">
+          <option value="">Seleccionar...</option>
+          <option value="income">Ingreso</option>
+          <option value="expense">Gasto / Factura</option>
+          <option value="investment">Inversión</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Categoría *</label>
+        <select id="f-category"><option value="">Seleccionar tipo primero...</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha *</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>Monto *</label>
+        <input type="number" id="f-amount" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Moneda</label>
+        <select id="f-currency">
+          <option value="CRC">₡ Colones (CRC)</option>
+          <option value="USD">$ Dólares (USD)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Socio / Responsable</label>
+        <input type="text" id="f-who" placeholder="Nombre del socio">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Descripción *</label>
+      <input type="text" id="f-desc" placeholder="Ej: Factura imprenta merch, patrocinio evento...">
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Notas / Número de factura</label>
+      <textarea id="f-notes" placeholder="Número de factura, proveedor, detalles adicionales..."></textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:1.25rem">
+      <label>Referencia / URL de documento</label>
+      <input type="text" id="f-file" placeholder="https://drive.google.com/... o número de documento">
+    </div>
+    <button class="btn-primary" id="save-btn" onclick="saveRecord()">Guardar registro</button>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div id="tab-historial" class="tab-content">
+    <div class="filter-row">
+      <select id="filter-type" onchange="renderHistorial()">
+        <option value="">Todos los tipos</option>
+        <option value="income">Ingresos</option>
+        <option value="expense">Gastos</option>
+        <option value="investment">Inversiones</option>
+      </select>
+      <select id="filter-cat" onchange="renderHistorial()"><option value="">Todas las categorías</option></select>
+      <input type="month" id="filter-month" onchange="renderHistorial()">
+      <button onclick="exportCSV()" style="background:#fff;border:1px solid #e5e5e0;padding:7px 13px;border-radius:8px;font-size:13px;cursor:pointer;color:#666">⬇ Exportar CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Fecha</th><th>Descripción</th><th>Tipo</th><th>Categoría</th><th>Responsable</th><th>Monto</th><th></th></tr></thead>
+      <tbody id="hist-tbody"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- INVERSIONES -->
+  <div id="tab-inversiones" class="tab-content">
+    <div class="section-title">Capital invertido</div>
+    <div id="inv-list"><div class="loading-overlay"><span class="spinner"></span>Cargando...</div></div>
+    <div class="metrics-grid" id="inv-metrics" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- MERCH -->
+  <div id="tab-merch" class="tab-content">
+    <div class="section-title">Agregar producto</div>
+    <div id="merch-alert" style="display:none"></div>
+    <div class="form-row-3">
+      <div class="form-group"><label>Producto *</label><input type="text" id="m-product" placeholder="Ej: Culto Tee Black S"></div>
+      <div class="form-group"><label>Unidades *</label><input type="number" id="m-qty" placeholder="10" min="1"></div>
+      <div class="form-group"><label>Precio venta (USD) *</label><input type="number" id="m-price" placeholder="35.00" min="0" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Costo unitario (USD)</label><input type="number" id="m-cost" placeholder="18.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Estado</label>
+        <select id="m-status">
+          <option value="stock">En stock</option>
+          <option value="vendido">Vendido</option>
+          <option value="apartado">Apartado</option>
+          <option value="produccion">En producción</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" id="merch-save-btn" onclick="saveMerch()" style="margin-bottom:1.25rem">Agregar producto</button>
+    <div class="section-title">Inventario</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Producto</th><th>Qty</th><th>Precio</th><th>Costo</th><th>Margen</th><th>Estado</th><th>Ingreso est.</th><th></th></tr></thead>
+      <tbody id="merch-tbody"><tr><td colspan="8" class="empty-state">Sin productos</td></tr></tbody></table>
+    </div>
+    <div class="metrics-grid" id="merch-metrics" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBluT3U-a051swKNfsTmeNt_9M2aKQiSfI",
+  authDomain: "culto-finanzas.firebaseapp.com",
+  projectId: "culto-finanzas",
+  storageBucket: "culto-finanzas.firebasestorage.app",
+  messagingSenderId: "278243497263",
+  appId: "1:278243497263:web:1c382f390e8fcaf26d7dda",
+  measurementId: "G-R3H3694V8Z"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Emails autorizados — agregá los socios acá
+const ALLOWED_EMAILS = [
+  // "socio1@gmail.com",
+  // "socio2@gmail.com",
+];
+
+// ─── AUTH ───────────────────────────────────────────────
+window.loginGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const email = result.user.email;
+    if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(email)) {
+      await signOut(auth);
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-error').textContent = 'Acceso no autorizado para este correo: ' + email;
+    }
+  } catch(e) {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-error').textContent = 'Error al ingresar: ' + e.message;
+  }
+};
+
+window.logout = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-name').textContent = user.displayName || user.email;
+    document.getElementById('user-avatar').src = user.photoURL || '';
+    loadAll();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ─── DATA ────────────────────────────────────────────────
+const CATS = {
+  income:     ['Patrocinio / Sponsor','Venta de merch','Inscripción evento','Colaboración de marca','Aporte socio','Otro ingreso'],
+  expense:    ['Merch / Producción','Logística evento','Marketing / Contenido','Equipamiento','Alimentos / Hidratación','Transporte','Plataformas digitales','Otro gasto'],
+  investment: ['Inventario merch','Equipo fotográfico','Branding / Diseño','Tecnología','Capital inicial','Otro']
+};
+
+let records = [];
+let merch = [];
+
+async function loadAll() {
+  await loadRecords();
+  await loadMerch();
+  renderDashboard();
+}
+
+async function loadRecords() {
+  const q = query(collection(db, 'records'), orderBy('date', 'desc'));
+  const snap = await getDocs(q);
+  records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function loadMerch() {
+  const snap = await getDocs(collection(db, 'merch'));
+  merch = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ─── HELPERS ─────────────────────────────────────────────
+function toUSD(amount, cur) { return cur === 'USD' ? Number(amount) : Number(amount) / 530; }
+function fmtUSD(n) { return '$' + Number(n).toLocaleString('es-CR', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmt(n, cur) { return (cur==='USD'?'$':'₡') + Number(n).toLocaleString('es-CR', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function badgeType(t) {
+  if (t==='income')     return '<span class="badge badge-income">Ingreso</span>';
+  if (t==='expense')    return '<span class="badge badge-expense">Gasto</span>';
+  if (t==='investment') return '<span class="badge badge-investment">Inversión</span>';
+  return t;
+}
+
+// ─── TABS ─────────────────────────────────────────────────
+window.showTab = (t, btn) => {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+  if (t==='dashboard')   renderDashboard();
+  if (t==='historial')   renderHistorial();
+  if (t==='inversiones') renderInversiones();
+  if (t==='merch')       renderMerchTable();
+};
+
+// ─── FORM ─────────────────────────────────────────────────
+window.updateCategories = () => {
+  const type = document.getElementById('f-type').value;
+  const sel  = document.getElementById('f-category');
+  sel.innerHTML = '<option value="">Seleccionar categoría...</option>';
+  (CATS[type]||[]).forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+};
+
+window.saveRecord = async () => {
+  const type   = document.getElementById('f-type').value;
+  const cat    = document.getElementById('f-category').value;
+  const date   = document.getElementById('f-date').value;
+  const amount = document.getElementById('f-amount').value;
+  const cur    = document.getElementById('f-currency').value;
+  const desc   = document.getElementById('f-desc').value.trim();
+  const who    = document.getElementById('f-who').value.trim();
+  const notes  = document.getElementById('f-notes').value.trim();
+  const file   = document.getElementById('f-file').value.trim();
+  const al     = document.getElementById('form-alert');
+  const btn    = document.getElementById('save-btn');
+
+  if (!type||!cat||!date||!amount||!desc) {
+    al.className='alert alert-error'; al.style.display='block';
+    al.textContent='Completá todos los campos obligatorios (*).'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const rec = { type, cat, date, amount: parseFloat(amount), cur, desc, who, notes, file, createdAt: serverTimestamp() };
+    const docRef = await addDoc(collection(db, 'records'), rec);
+    records.unshift({ id: docRef.id, ...rec });
+    al.className='alert alert-success'; al.style.display='block'; al.textContent='✓ Registro guardado en la nube.';
+    ['f-type','f-category','f-date','f-amount','f-currency','f-desc','f-who','f-notes','f-file'].forEach(id => {
+      const el=document.getElementById(id); el.tagName==='SELECT'?el.value='':el.value='';
+    });
+    updateCategories();
+    setTimeout(()=>{ al.style.display='none'; },3500);
+  } catch(e) {
+    al.className='alert alert-error'; al.style.display='block'; al.textContent='Error al guardar: '+e.message;
+  }
+  btn.disabled=false; btn.textContent='Guardar registro';
+};
+
+window.deleteRecord = async (id) => {
+  if (!confirm('¿Eliminás este registro? Esta acción no se puede deshacer.')) return;
+  await deleteDoc(doc(db,'records',id));
+  records = records.filter(r => r.id!==id);
+  renderHistorial(); renderDashboard();
+};
+
+// ─── DASHBOARD ────────────────────────────────────────────
+function renderDashboard() {
+  const totalIncome = records.filter(r=>r.type==='income').reduce((s,r)=>s+toUSD(r.amount,r.cur),0);
+  const totalExpense = records.filter(r=>r.type==='expense').reduce((s,r)=>s+toUSD(r.amount,r.cur),0);
+  const totalInv = records.filter(r=>r.type==='investment').reduce((s,r)=>s+toUSD(r.amount,r.cur),0);
+  const balance = totalIncome - totalExpense - totalInv;
+  const balEl = document.getElementById('header-balance');
+  balEl.textContent = fmtUSD(balance);
+  balEl.style.color = balance>=0?'#4ade80':'#f87171';
+
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Ingresos</div><div class="metric-value positive">${fmtUSD(totalIncome)}</div></div>
+    <div class="metric-card"><div class="metric-label">Gastos</div><div class="metric-value negative">${fmtUSD(totalExpense)}</div></div>
+    <div class="metric-card"><div class="metric-label">Inversiones</div><div class="metric-value" style="color:#6366f1">${fmtUSD(totalInv)}</div></div>
+    <div class="metric-card"><div class="metric-label">Balance neto</div><div class="metric-value ${balance>=0?'positive':'negative'}">${fmtUSD(balance)}</div></div>
+    <div class="metric-card"><div class="metric-label">Registros</div><div class="metric-value">${records.length}</div></div>
+  `;
+
+  function barChart(cId, type, color) {
+    const byCat = {};
+    records.filter(r=>r.type===type).forEach(r=>{ byCat[r.cat]=(byCat[r.cat]||0)+toUSD(r.amount,r.cur); });
+    const sorted = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+    const max = sorted.length ? sorted[0][1] : 1;
+    const c = document.getElementById(cId);
+    if (!sorted.length) { c.innerHTML='<div class="empty-state">Sin registros aún</div>'; return; }
+    c.innerHTML = sorted.map(([cat,val])=>`
+      <div class="chart-bar-row">
+        <div class="chart-bar-label">${cat.length>16?cat.slice(0,15)+'…':cat}</div>
+        <div class="chart-bar-outer"><div class="chart-bar-inner" style="width:${Math.round(val/max*100)}%;background:${color}"></div></div>
+        <div class="chart-bar-val">${fmtUSD(val)}</div>
+      </div>`).join('');
+  }
+  barChart('chart-income','income','#16a34a');
+  barChart('chart-expense','expense','#c0392b');
+
+  const recent = [...records].slice(0,5);
+  document.getElementById('recent-tbody').innerHTML = recent.length
+    ? recent.map(r=>`<tr><td>${r.date}</td><td>${r.desc}</td><td>${badgeType(r.type)}</td><td><span class="cat-tag">${r.cat}</span></td><td class="${r.type==='income'?'amount-pos':'amount-neg'}">${r.type==='income'?'+':'-'}${fmt(r.amount,r.cur)}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty-state">Sin movimientos registrados</td></tr>';
+}
+
+// ─── HISTORIAL ────────────────────────────────────────────
+window.renderHistorial = () => {
+  const typeF  = document.getElementById('filter-type').value;
+  const catF   = document.getElementById('filter-cat').value;
+  const monthF = document.getElementById('filter-month').value;
+  const allCats = [...new Set(records.map(r=>r.cat))];
+  const cs = document.getElementById('filter-cat');
+  const prev = cs.value;
+  cs.innerHTML = '<option value="">Todas las categorías</option>';
+  allCats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; if(c===prev)o.selected=true; cs.appendChild(o); });
+  let filtered = records.filter(r=>{
+    if (typeF  && r.type!==typeF) return false;
+    if (catF   && r.cat!==catF)   return false;
+    if (monthF && !r.date.startsWith(monthF)) return false;
+    return true;
+  });
+  document.getElementById('hist-tbody').innerHTML = filtered.length
+    ? filtered.map(r=>`<tr>
+        <td>${r.date}</td>
+        <td>${r.desc}${r.notes?`<br><span style="font-size:11px;color:#999">${r.notes}</span>`:''}${r.file?`<br><a href="${r.file}" target="_blank" style="font-size:11px;color:#6366f1">📎 Referencia</a>`:''}</td>
+        <td>${badgeType(r.type)}</td>
+        <td><span class="cat-tag">${r.cat}</span></td>
+        <td style="font-size:12px;color:#888">${r.who||'—'}</td>
+        <td class="${r.type==='income'?'amount-pos':'amount-neg'}">${r.type==='income'?'+':'-'}${fmt(r.amount,r.cur)}</td>
+        <td><button class="btn-small" onclick="deleteRecord('${r.id}')">🗑</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" class="empty-state">Sin registros para estos filtros</td></tr>';
+};
+
+window.exportCSV = () => {
+  const rows = [['Fecha','Tipo','Categoría','Descripción','Monto','Moneda','Responsable','Notas','Referencia']];
+  records.forEach(r => rows.push([r.date,r.type,r.cat,r.desc,r.amount,r.cur,r.who||'',r.notes||'',r.file||'']));
+  const csv = rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='culto_finanzas.csv'; a.click();
+};
+
+// ─── INVERSIONES ─────────────────────────────────────────
+function renderInversiones() {
+  const invs = records.filter(r=>r.type==='investment');
+  const total = invs.reduce((s,r)=>s+toUSD(r.amount,r.cur),0);
+  document.getElementById('inv-list').innerHTML = invs.length
+    ? invs.map(r=>`<div class="inv-card">
+        <div class="inv-title">${r.desc}</div>
+        <div class="inv-meta"><span>${r.date}</span><span>${r.cat}</span>${r.who?`<span>${r.who}</span>`:''}</div>
+        ${r.notes?`<div style="font-size:12px;color:#888;margin-top:6px">${r.notes}</div>`:''}
+        <div class="inv-amount">-${fmt(r.amount,r.cur)}</div>
+      </div>`).join('')
+    : '<div class="empty-state">Sin inversiones registradas</div>';
+  document.getElementById('inv-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total invertido</div><div class="metric-value" style="color:#6366f1">${fmtUSD(total)}</div></div>
+    <div class="metric-card"><div class="metric-label">Número de inversiones</div><div class="metric-value">${invs.length}</div></div>
+  `;
+}
+
+// ─── MERCH ───────────────────────────────────────────────
+const STATUS_LABELS = {stock:'En stock',vendido:'Vendido',apartado:'Apartado',produccion:'En producción'};
+
+window.saveMerch = async () => {
+  const p  = document.getElementById('m-product').value.trim();
+  const q  = document.getElementById('m-qty').value;
+  const pr = document.getElementById('m-price').value;
+  const co = document.getElementById('m-cost').value;
+  const st = document.getElementById('m-status').value;
+  const al = document.getElementById('merch-alert');
+  const btn= document.getElementById('merch-save-btn');
+  if (!p||!q||!pr) { al.className='alert alert-error'; al.style.display='block'; al.textContent='Completá producto, cantidad y precio.'; return; }
+  btn.disabled=true; btn.textContent='Guardando...';
+  try {
+    const item = { product:p, qty:parseInt(q), price:parseFloat(pr), cost:parseFloat(co)||0, status:st, createdAt:serverTimestamp() };
+    const docRef = await addDoc(collection(db,'merch'), item);
+    merch.push({ id:docRef.id, ...item });
+    ['m-product','m-qty','m-price','m-cost'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('m-status').value='stock';
+    al.className='alert alert-success'; al.style.display='block'; al.textContent='✓ Producto agregado.';
+    setTimeout(()=>{ al.style.display='none'; },2500);
+    renderMerchTable();
+  } catch(e) { al.className='alert alert-error'; al.style.display='block'; al.textContent='Error: '+e.message; }
+  btn.disabled=false; btn.textContent='Agregar producto';
+};
+
+window.deleteMerch = async (id) => {
+  if (!confirm('¿Eliminás este producto?')) return;
+  await deleteDoc(doc(db,'merch',id));
+  merch = merch.filter(m=>m.id!==id);
+  renderMerchTable();
+};
+
+function renderMerchTable() {
+  document.getElementById('merch-tbody').innerHTML = merch.length
+    ? merch.map(m=>{
+        const margin = m.price-m.cost;
+        const marginPct = m.cost>0?((margin/m.price)*100).toFixed(0):100;
+        return `<tr>
+          <td style="font-weight:600">${m.product}</td>
+          <td>${m.qty}</td>
+          <td>$${Number(m.price).toFixed(2)}</td>
+          <td>$${Number(m.cost).toFixed(2)}</td>
+          <td>$${Number(margin).toFixed(2)} <span style="font-size:11px;color:#999">(${marginPct}%)</span></td>
+          <td><span class="badge ${m.status==='vendido'?'badge-income':m.status==='produccion'?'badge-investment':'badge-expense'}">${STATUS_LABELS[m.status]||m.status}</span></td>
+          <td class="amount-pos">$${(m.qty*m.price).toFixed(2)}</td>
+          <td><button class="btn-small" onclick="deleteMerch('${m.id}')">🗑</button></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="8" class="empty-state">Sin productos registrados</td></tr>';
+  const totalRev  = merch.reduce((s,m)=>s+m.qty*m.price,0);
+  const totalCost = merch.reduce((s,m)=>s+m.qty*m.cost,0);
+  const totalMar  = totalRev-totalCost;
+  document.getElementById('merch-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Ingreso estimado</div><div class="metric-value positive">$${totalRev.toFixed(2)}</div></div>
+    <div class="metric-card"><div class="metric-label">Costo total</div><div class="metric-value negative">$${totalCost.toFixed(2)}</div></div>
+    <div class="metric-card"><div class="metric-label">Margen total</div><div class="metric-value ${totalMar>=0?'positive':'negative'}">$${totalMar.toFixed(2)}</div></div>
+    <div class="metric-card"><div class="metric-label">Productos</div><div class="metric-value">${merch.length}</div></div>
+  `;
+}
+
+// init date
+document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+</script>
+</body>
+</html>
